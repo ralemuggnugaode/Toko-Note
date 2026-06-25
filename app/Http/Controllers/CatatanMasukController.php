@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pengeluaran;
+use App\Models\Pemasukan;
 use Illuminate\Http\Request;
 
-class PengeluaranController extends Controller
+class CatatanMasukController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('pengeluaran',[
-            'title' => 'Pengeluaran'
+        return view('pemasukan',[
+            'title' => 'Pemasukan'
         ]);
     }
 
@@ -36,7 +36,7 @@ class PengeluaranController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Pengeluaran $pengeluaran)
+    public function show(Pemasukan $pemasukan)
     {
         //
     }
@@ -44,7 +44,7 @@ class PengeluaranController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Pengeluaran $pengeluaran)
+    public function edit(Pemasukan $pemasukan)
     {
         //
     }
@@ -52,7 +52,7 @@ class PengeluaranController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Pengeluaran $pengeluaran)
+    public function update(Request $request, Pemasukan $pemasukan)
     {
         //
     }
@@ -60,7 +60,7 @@ class PengeluaranController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Pengeluaran $pengeluaran)
+    public function destroy(Pemasukan $pemasukan)
     {
         //
     }
