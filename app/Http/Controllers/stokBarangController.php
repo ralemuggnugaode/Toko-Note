@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\StokBarang;
+use App\Models\StokBarang_719;
 use Illuminate\Http\Request;
 
 class stokBarangController extends Controller
@@ -12,7 +12,7 @@ class stokBarangController extends Controller
      */
     public function index()
     {
-        $barangs = StokBarang::all();
+        $barangs = StokBarang_719::all();
         return view('pages.stokBarang_719',compact('barangs'))->with('title', 'Stok Barang');
     }
 
@@ -42,16 +42,16 @@ class stokBarangController extends Controller
         $kode = $validated['719_kode'] ?? null;
 
         if ($kode) {
-            while (StokBarang::where('719_kode', $kode)->exists()) {
+            while (StokBarang_719::where('719_kode', $kode)->exists()) {
                 $kode = 'BRG' . rand(100, 999);
             }
         } else {
             do {
                 $kode = 'BRG' . rand(100, 999);
-            } while (StokBarang::where('719_kode', $kode)->exists());
+            } while (StokBarang_719::where('719_kode', $kode)->exists());
         }
 
-        $barang = StokBarang::create([
+        $barang = StokBarang_719::create([
             '719_kode'          => $kode,
             '719_nama'          => $validated['719_nama'],
             '719_kategori'      => $validated['719_kategori'],
@@ -68,7 +68,7 @@ class stokBarangController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(StokBarang $stokBarang)
+    public function show(StokBarang_719 $stokBarang)
     {
         //
     }
@@ -76,7 +76,7 @@ class stokBarangController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(StokBarang $stokBarang)
+    public function edit(StokBarang_719 $stokBarang)
     {
         //
     }
@@ -84,7 +84,7 @@ class stokBarangController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, StokBarang $stokBarang)
+    public function update(Request $request, StokBarang_719 $stokBarang)
     {
         //
     }
@@ -92,7 +92,7 @@ class stokBarangController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(StokBarang $stokBarang, $id)
+    public function destroy(StokBarang_719 $stokBarang, $id)
     {
         $getStokBarang = $stokBarang->findOrFail($id);
         $getStokBarang->delete();
