@@ -92,9 +92,10 @@ class stokBarangController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(StokBarang $stokBarang)
+    public function destroy(StokBarang $stokBarang, $id)
     {
-        $stokBarang->delete();
+        $getStokBarang = $stokBarang->findOrFail($id);
+        $getStokBarang->delete();
         return redirect()
         ->route('stok-barang-719.index')
         ->with('success', 'Barang berhasil dihapus');

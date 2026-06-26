@@ -11,8 +11,8 @@ class StokBarang extends Model
 
     protected $table = 'stok_barang_719';
 
+    protected $primaryKey = 'id';
     protected $fillable = [
-        'id',
         '719_kode',
         '719_nama',
         '719_kategori',
