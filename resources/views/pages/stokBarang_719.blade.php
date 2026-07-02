@@ -26,6 +26,7 @@
                             <thead>
                                 <tr>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Kode/Nama</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Gambar</th>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Kategori</th>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-end">Harga Beli</th>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-end">Harga Jual</th>
@@ -44,6 +45,7 @@
                                                 </div>
                                             </div>
                                         </td>
+                                        <td class="text-sm">{{ $barang->{'719_gambar'} }}</td>
                                         <td class="text-sm">{{ $barang->{'719_kategori'} }}</td>
                                         <td class="text-sm text-end">Rp {{ number_format($barang->{'719_harga_beli'}, 0, ',', '.') }}</td>
                                         <td class="text-sm text-end">Rp {{ number_format($barang->{'719_harga_jual'}, 0, ',', '.') }}</td>
@@ -82,9 +84,13 @@
                     <h5 class="modal-title">Tambah Barang Baru</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{{ route('stok-barang-719.store') }}" method="POST">
+                <form action="{{ route('stok-barang-719.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Gambar Barang</label>
+                            <input type="file" name="719_gambar" id="719_gambar" class="form-control" required>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label">Nama Barang</label>
                             <input type="text" name="719_nama" class="form-control" required>

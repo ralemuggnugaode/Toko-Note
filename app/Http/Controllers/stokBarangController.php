@@ -30,6 +30,7 @@ class stokBarangController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            '719_gambar'         => 'max:5120|required|file|image',
             '719_kode'           => 'nullable|string|max:10',
             '719_nama'           => 'required|string|max:255',
             '719_kategori'       => 'required|string|max:255',
@@ -39,7 +40,10 @@ class stokBarangController extends Controller
             '719_stok_tercatat'  => 'required|integer',
         ]);
 
+        $validated['719_gambar'] = $request->file('719_gambar')->store('image-barang');
+
         $kode = $validated['719_kode'] ?? null;
+
 
         if ($kode) {
             while (StokBarang_719::where('719_kode', $kode)->exists()) {
@@ -53,6 +57,7 @@ class stokBarangController extends Controller
 
         $barang = StokBarang_719::create([
             '719_kode'          => $kode,
+            '719_gambar'        => $validated['719_gambar'],
             '719_nama'          => $validated['719_nama'],
             '719_kategori'      => $validated['719_kategori'],
             '719_harga_beli'    => $validated['719_harga_beli'],

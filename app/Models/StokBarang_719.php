@@ -14,6 +14,7 @@ class StokBarang_719 extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         '719_kode',
+        '719_gambar',
         '719_nama',
         '719_kategori',
         '719_harga_beli',
