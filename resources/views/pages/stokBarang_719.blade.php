@@ -45,7 +45,7 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="text-sm">{{ $barang->{'719_gambar'} }}</td>
+                                        <td class="text-sm" value="{{ $barang->{'719_gambar'} }}"></td>
                                         <td class="text-sm">{{ $barang->{'719_kategori'} }}</td>
                                         <td class="text-sm text-end">Rp {{ number_format($barang->{'719_harga_beli'}, 0, ',', '.') }}</td>
                                         <td class="text-sm text-end">Rp {{ number_format($barang->{'719_harga_jual'}, 0, ',', '.') }}</td>

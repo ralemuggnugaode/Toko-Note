@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\StokBarang_719;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class stokBarangController extends Controller
 {
@@ -100,6 +101,10 @@ class stokBarangController extends Controller
     public function destroy(StokBarang_719 $stokBarang, $id)
     {
         $getStokBarang = $stokBarang->findOrFail($id);
+        $pathGambar = $getStokBarang->{'719_gambar'};
+        if ($pathGambar && Storage::exists($pathGambar)) {
+            Storage::delete($pathGambar);
+        }
         $getStokBarang->delete();
         return redirect()
         ->route('stok-barang-719.index')
