@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\StokBarang_719;
+use App\Traits\ResolvesImageFolder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class stokBarangController extends Controller
 {
+    use ResolvesImageFolder;
+
     /**
      * Display a listing of the resource.
      */
@@ -41,7 +44,7 @@ class stokBarangController extends Controller
             '719_stok_tercatat'  => 'required|integer',
         ]);
 
-        $validated['719_gambar'] = $request->file('719_gambar')->store('image-gambar-719');
+        $validated['719_gambar'] = $request->file('719_gambar')->store($this->imageFolder(719, 'barang_719'));
 
         $kode = $validated['719_kode'] ?? null;
 
@@ -107,7 +110,7 @@ class stokBarangController extends Controller
             if ($stokBarang->{'719_gambar'} && Storage::exists($stokBarang->{'719_gambar'})) {
                 Storage::delete($stokBarang->{'719_gambar'});
             }
-            $path = $request->file('719_gambar')->store('image-gambar-719');
+            $path = $request->file('719_gambar')->store($this->imageFolder(719, 'barang_719'));
             $validated['719_gambar'] = $path;
         } else {
             $validated['719_gambar'] = $stokBarang->{'719_gambar'};

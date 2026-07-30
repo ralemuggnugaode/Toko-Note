@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Pengeluaran_742;
 use App\Models\StokBarang_719;
+use App\Traits\ResolvesImageFolder;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
 class CatatanKeluarController extends Controller
 {
+    use ResolvesImageFolder;
+
     public function index()
     {
         return view('pages.catatanKeluar_742', [
@@ -157,17 +161,32 @@ class CatatanKeluarController extends Controller
     {
         if ($request->hasFile('gambar_742')) {
             if ($oldFile) $this->deleteFile($oldFile);
+
             $file = $request->file('gambar_742');
             $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/catatan_keluar'), $fileName);
-            return $fileName;
+
+            // Simpan ke storage/app/public/{genap|ganjil}/catatan_keluar_742
+            $folder = $this->imageFolder(742, 'catatan_keluar_742');
+            $file->storeAs($folder, $fileName, 'public');
+
+            // Simpan path relatif (folder + nama file) supaya bisa dibedakan dari format lama
+            return $folder . '/' . $fileName;
         }
         return $oldFile;
     }
 
-    private function deleteFile($fileName)
+    private function deleteFile($value)
     {
-        $path = public_path('uploads/catatan_keluar/' . $fileName);
+        // Format baru (mengandung folder), disimpan lewat disk 'public'
+        if (str_contains($value, '/')) {
+            if (Storage::disk('public')->exists($value)) {
+                Storage::disk('public')->delete($value);
+            }
+            return;
+        }
+
+        // Format lama (hanya nama file), masih disimpan di public/uploads/catatan_keluar
+        $path = public_path('uploads/catatan_keluar/' . $value);
         if (File::exists($path)) File::delete($path);
     }
 }

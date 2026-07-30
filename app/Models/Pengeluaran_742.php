@@ -24,4 +24,22 @@ class Pengeluaran_742 extends Model
         'created_at',
         'updated_at',
     ];
+
+    /**
+     * URL gambar yang otomatis menyesuaikan:
+     * - Format lama: hanya nama file -> ada di public/uploads/catatan_keluar
+     * - Format baru: "genap/catatan_keluar_742/nama.jpg" -> disk 'public' (storage/app/public)
+     */
+    public function getGambarUrlAttribute(): ?string
+    {
+        if (empty($this->gambar_742)) {
+            return null;
+        }
+
+        if (str_contains($this->gambar_742, '/')) {
+            return asset('storage/' . $this->gambar_742);
+        }
+
+        return asset('uploads/catatan_keluar/' . $this->gambar_742);
+    }
 }
