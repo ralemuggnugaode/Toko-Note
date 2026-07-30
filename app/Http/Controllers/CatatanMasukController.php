@@ -12,11 +12,7 @@ use Illuminate\Support\Str;
 
 class CatatanMasukController extends Controller
 {
-    // Catatan: dulu ada pembatasan hanya NIM 729 yang boleh akses fitur ini.
-    // Sekarang semua NIM yang sudah login boleh mengakses semua fitur (stok
-    // barang, catatan masuk, catatan keluar) — pembatasan per-halaman dihapus.
-    // Middleware 'auth' di routes/web.php tetap memastikan hanya user yang
-    // sudah login yang bisa masuk ke sini.
+
 
     public function index()
     {
@@ -28,7 +24,7 @@ class CatatanMasukController extends Controller
 
     public function store(Request $request)
     {
-        // Validasi dengan prefix 729_
+
         $validator = Validator::make($request->all(), [
             '729_tanggal'    => 'required|date',
             '729_pihak'      => 'required|string|max:255',
@@ -38,14 +34,14 @@ class CatatanMasukController extends Controller
             '729_harga.*'     => 'required|numeric|min:0',
             '729_total'       => 'required|numeric|min:0',
             '729_keterangan'  => 'nullable|string',
-            '729_gambar'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // perbaiki validasi
+            '729_gambar'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Proses items
+
         $items = [];
         $barangIds = $request->input('729_barang_id', []);
         $jumlahs   = $request->input('729_jumlah', []);
