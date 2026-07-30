@@ -13,8 +13,9 @@
               <input type="text" class="form-control" placeholder="Type here...">
             </div>
           </div>
-          <ul class="navbar-nav  justify-content-end">
+          <ul class="navbar-nav justify-content-end">
             <li class="nav-item d-flex align-items-center">
+<<<<<<< HEAD
                 <form action="{{ route('sign.Out') }}" method="POST">
                     @csrf
                     <a class="nav-link text-body font-weight-bold py-0">
@@ -22,6 +23,15 @@
                       <button type="submit" class="d-sm-inline d-none btn bg-gradient-danger btn-sm ">Sign Out</button>
                     </a>
                 </form>
+=======
+              <form action="{{ route('logout') }}" method="POST" class="mb-0">
+                @csrf
+                <button type="submit" class="nav-link text-body font-weight-bold py-0 border-0 bg-transparent cursor-pointer">
+                  <i class="fa fa-user me-sm-1"></i>
+                  <span class="d-sm-inline d-none btn bg-gradient-danger btn-sm mb-0">Sign Out</span>
+                </button>
+              </form>
+>>>>>>> 6f4f3cae7e66eebf5f2adf0aa3462817bd76b6d5
             </li>
             <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
               <a href="javascript:;" class="nav-link text-body p-0" id="iconNavbarSidenav">
@@ -41,12 +51,12 @@
               <a href="javascript:;" class="nav-link text-body p-0" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa fa-bell cursor-pointer"></i>
               </a>
-              <ul class="dropdown-menu  dropdown-menu-end  px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
+              <ul class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
                 <li class="mb-2">
                   <a class="dropdown-item border-radius-md" href="javascript:;">
                     <div class="d-flex py-1">
                       <div class="my-auto">
-                        <img src="../assets/img/team-2.jpg" class="avatar avatar-sm  me-3 ">
+                        <img src="../assets/img/team-2.jpg" class="avatar avatar-sm me-3 ">
                       </div>
                       <div class="d-flex flex-column justify-content-center">
                         <h6 class="text-sm font-weight-normal mb-1">
@@ -64,7 +74,7 @@
                   <a class="dropdown-item border-radius-md" href="javascript:;">
                     <div class="d-flex py-1">
                       <div class="my-auto">
-                        <img src="../assets/img/small-logos/logo-spotify.svg" class="avatar avatar-sm bg-gradient-dark  me-3 ">
+                        <img src="../assets/img/small-logos/logo-spotify.svg" class="avatar avatar-sm bg-gradient-dark me-3 ">
                       </div>
                       <div class="d-flex flex-column justify-content-center">
                         <h6 class="text-sm font-weight-normal mb-1">
@@ -81,7 +91,7 @@
                 <li>
                   <a class="dropdown-item border-radius-md" href="javascript:;">
                     <div class="d-flex py-1">
-                      <div class="avatar avatar-sm bg-gradient-secondary  me-3  my-auto">
+                      <div class="avatar avatar-sm bg-gradient-secondary me-3 my-auto">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                           <title>credit-card</title>
                           <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
