@@ -8,7 +8,7 @@
                     <h5>Edit Barang</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('stok-barang-719.update', $stokBarang) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('page.stok-barang-719.update', $stokBarang) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <div class="mb-3">
@@ -25,7 +25,6 @@
                             @enderror
                         </div>
 
-                        {{-- Kode --}}
                         <div class="mb-3">
                             <label class="form-label">Kode Barang</label>
                             <input type="text" name="719_kode" class="form-control @error('719_kode') is-invalid @enderror"
@@ -35,7 +34,6 @@
                             @enderror
                         </div>
 
-                        {{-- Nama --}}
                         <div class="mb-3">
                             <label class="form-label">Nama Barang <span class="text-danger">*</span></label>
                             <input type="text" name="719_nama" class="form-control @error('719_nama') is-invalid @enderror"
@@ -45,7 +43,6 @@
                             @enderror
                         </div>
 
-                        {{-- Kategori --}}
                         <div class="mb-3">
                             <label class="form-label">Kategori <span class="text-danger">*</span></label>
                             <input type="text" name="719_kategori" class="form-control @error('719_kategori') is-invalid @enderror"
@@ -55,7 +52,6 @@
                             @enderror
                         </div>
 
-                        {{-- Harga --}}
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -79,7 +75,6 @@
                             </div>
                         </div>
 
-                        {{-- Stok --}}
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -104,7 +99,7 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <a href="{{ route('stok-barang-719.index') }}" class="btn btn-secondary me-2">Batal</a>
+                            <a href="{{ route('page.stok-barang-719.index') }}" class="btn btn-secondary me-2">Batal</a>
                             <button type="submit" class="btn btn-primary">Update Barang</button>
                         </div>
                     </form>
