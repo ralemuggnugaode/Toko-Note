@@ -13,7 +13,7 @@
     <div class="collapse navbar-collapse  w-auto  max-height-vh-100 h-auto" id="sidenav-collapse-main">
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="{{ route('page.home') }}">
+                <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="/home">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 45 40" version="1.1"
@@ -65,7 +65,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ Request::is('catatan-masuk-729*') ? 'active' : '' }}" href="{{ route('catatan-masuk-729.index') }}">
+                <a class="nav-link {{ Request::is('catatan-masuk*') ? 'active' : '' }}" href="/catatan-masuk">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 45 40" version="1.1"

@@ -2,66 +2,332 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pemasukan;
+use App\Models\Masuk729;
+use App\Models\StokBarang_719;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class CatatanMasukController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Catatan: dulu ada pembatasan hanya NIM 729 yang boleh akses fitur ini.
+    // Sekarang semua NIM yang sudah login boleh mengakses semua fitur (stok
+    // barang, catatan masuk, catatan keluar) — pembatasan per-halaman dihapus.
+    // Middleware 'auth' di routes/web.php tetap memastikan hanya user yang
+    // sudah login yang bisa masuk ke sini.
+
     public function index()
     {
-        return view('pemasukan',[
-            'title' => 'Pemasukan'
-        ]);
+        $daftarBarang = StokBarang_719::all();
+        $masukTerakhir = Masuk729::latest()->take(5)->get();
+
+        return view('pages.catatan_masuk_729', compact('daftarBarang', 'masukTerakhir'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        // Validasi dengan prefix 729_
+        $validator = Validator::make($request->all(), [
+            '729_tanggal'    => 'required|date',
+            '729_pihak'      => 'required|string|max:255',
+            '729_nomor'      => 'nullable|string|max:50',
+            '729_barang_id.*' => 'required|string',
+            '729_jumlah.*'    => 'required|integer|min:1',
+            '729_harga.*'     => 'required|numeric|min:0',
+            '729_total'       => 'required|numeric|min:0',
+            '729_keterangan'  => 'nullable|string',
+            '729_gambar'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // perbaiki validasi
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        // Proses items
+        $items = [];
+        $barangIds = $request->input('729_barang_id', []);
+        $jumlahs   = $request->input('729_jumlah', []);
+        $hargas    = $request->input('729_harga', []);
+        $namaLain  = $request->input('729_nama_barang_lain', []);
+        $namaBarangHidden = $request->input('729_nama_barang', []);
+
+        foreach ($barangIds as $i => $barangId) {
+            if (empty($barangId) || empty($jumlahs[$i])) {
+                continue;
+            }
+
+            $item = [
+                'barang_id' => $barangId,
+                'jumlah'    => (int) $jumlahs[$i],
+                'harga'     => (int) $hargas[$i],
+                'subtotal'  => (int) $jumlahs[$i] * (int) $hargas[$i],
+            ];
+
+            if ($barangId === 'LAINNYA' && isset($namaLain[$i])) {
+                $item['nama_barang_lain'] = trim($namaLain[$i]);
+            } elseif (!empty($namaBarangHidden[$i])) {
+                // Nama barang (dari dropdown Jenis) disimpan sebagai cadangan pencocokan stok
+                $item['nama_barang'] = trim($namaBarangHidden[$i]);
+            }
+
+            $items[] = $item;
+        }
+
+        // Upload gambar
+        $gambarPath = null;
+        $gambarOriginal = null;
+        if ($request->hasFile('729_gambar') && $request->file('729_gambar')->isValid()) {
+            $file = $request->file('729_gambar');
+            $gambarOriginal = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $newName = date('Ymd_His') . '_' . Str::random(10) . '.' . $extension;
+
+            // Tentukan folder berdasarkan NIM user yang login
+            $userNim = auth()->user()->username; // misal '729'
+            $lastTwo = substr($userNim, -2);     // '29'
+            $folder = ($lastTwo % 2 == 0) ? 'genap' : 'ganjil';
+            // Untuk 729 -> ganjil
+
+            // Simpan di storage/app/public/$folder (disk 'public')
+            $path = $file->storeAs($folder, $newName, 'public');
+            // Simpan path relatif dari public: 'ganjil/nama.jpg'
+            $gambarPath = $folder . '/' . $newName;
+        }
+
+        $nomor = $request->input('729_nomor');
+        if (empty($nomor)) {
+            $nomor = 'IN-' . date('Ymd') . '-' . rand(100, 999);
+        }
+
+        DB::transaction(function () use ($request, $items, $nomor, $gambarPath, $gambarOriginal) {
+            // Simpan catatan masuk
+            Masuk729::create([
+                'tanggal'    => $request->input('729_tanggal'),
+                'pihak'      => $request->input('729_pihak'),
+                'nomor'      => $nomor,
+                'items'      => $items,
+                'total'      => (int) $request->input('729_total'),
+                'keterangan' => $request->input('729_keterangan', ''),
+                'gambar'     => $gambarPath,
+                'gambar_original' => $gambarOriginal,
+            ]);
+
+            // Update stok barang berdasarkan barang yang masuk
+            $this->applyStokMasuk($items);
+        });
+
+        return redirect()->route('catatan-masuk.index')->with('success', 'Catatan masuk berhasil disimpan dan stok barang telah diperbarui!');
+    }
+
+    private function cariBarangSamaNama(string $nama)
+    {
+        return StokBarang_719::whereRaw('LOWER(TRIM(719_nama)) = ?', [strtolower(trim($nama))])->first();
     }
 
     /**
-     * Display the specified resource.
+     * Tambahkan stok ke StokBarang_719 sesuai daftar item catatan masuk.
+     * Dipakai saat store() dan saat update() menerapkan item baru.
      */
-    public function show(Pemasukan $pemasukan)
+    private function applyStokMasuk(array $items): void
     {
-        //
+        foreach ($items as $item) {
+            if ($item['barang_id'] === 'LAINNYA') {
+                $namaBaru = trim($item['nama_barang_lain'] ?? 'Barang Baru');
+
+                // Cek jika barang dengan nama yang sama sudah ada (tidak peka huruf besar/kecil & spasi),
+                // baik dari supplier yang sama maupun beda -> tambahkan stoknya saja, jangan buat duplikat
+                $barangSama = $this->cariBarangSamaNama($namaBaru);
+
+                if ($barangSama) {
+                    $barangSama->increment('719_stok_tercatat', $item['jumlah']);
+                    $barangSama->update(['719_harga_beli' => $item['harga']]);
+                    continue;
+                }
+
+                do {
+                    $kodeBaru = 'BRG' . rand(100, 999);
+                } while (StokBarang_719::where('719_kode', $kodeBaru)->exists());
+
+                StokBarang_719::create([
+                    '719_kode'          => $kodeBaru,
+                    '719_gambar'        => '',
+                    '719_nama'          => $namaBaru,
+                    '719_kategori'      => 'Lain-lain',
+                    '719_harga_beli'    => $item['harga'],
+                    '719_harga_jual'    => $item['harga'],
+                    '719_stok_min'      => 0,
+                    '719_stok_tercatat' => $item['jumlah'],
+                ]);
+            } else {
+                // Barang sudah ada di stok (dipilih dari dropdown Jenis) -> tambahkan jumlah stok tercatat.
+                // Dicocokkan lewat kode barang dulu; kalau entah kenapa tidak ketemu, coba lewat nama
+                // sebagai cadangan supaya stok tetap ter-update.
+                $barang = StokBarang_719::where('719_kode', $item['barang_id'])->first();
+
+                if (!$barang && !empty($item['nama_barang'])) {
+                    $barang = $this->cariBarangSamaNama($item['nama_barang']);
+                }
+
+                if ($barang) {
+                    $barang->increment('719_stok_tercatat', $item['jumlah']);
+                    // Perbarui harga beli terbaru dari transaksi masuk ini
+                    $barang->update(['719_harga_beli' => $item['harga']]);
+                }
+            }
+        }
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Kebalikan dari applyStokMasuk(): kurangi stok sesuai daftar item lama,
+     * dipakai saat sebuah catatan masuk diedit (batalkan efek lama) atau dihapus.
      */
-    public function edit(Pemasukan $pemasukan)
+    private function reverseStokMasuk(array $items): void
     {
-        //
+        foreach ($items as $item) {
+            $barang = null;
+
+            if ($item['barang_id'] === 'LAINNYA') {
+                $nama = $item['nama_barang_lain'] ?? null;
+                if ($nama) {
+                    $barang = $this->cariBarangSamaNama($nama);
+                }
+            } else {
+                $barang = StokBarang_719::where('719_kode', $item['barang_id'])->first();
+
+                if (!$barang && !empty($item['nama_barang'])) {
+                    $barang = $this->cariBarangSamaNama($item['nama_barang']);
+                }
+            }
+
+            if ($barang) {
+                $stokBaru = max(0, $barang->{'719_stok_tercatat'} - $item['jumlah']);
+                $barang->update(['719_stok_tercatat' => $stokBaru]);
+            }
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Pemasukan $pemasukan)
+    public function edit($id)
     {
-        //
+        $masuk = Masuk729::findOrFail($id);
+        $daftarBarang = StokBarang_719::all();
+
+        return view('pages.catatan_masuk_729_edit', compact('masuk', 'daftarBarang'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Pemasukan $pemasukan)
+    public function update(Request $request, $id)
     {
-        //
+        $masuk = Masuk729::findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            '729_tanggal'    => 'required|date',
+            '729_pihak'      => 'required|string|max:255',
+            '729_nomor'      => 'nullable|string|max:50',
+            '729_barang_id.*' => 'required|string',
+            '729_jumlah.*'    => 'required|integer|min:1',
+            '729_harga.*'     => 'required|numeric|min:0',
+            '729_total'       => 'required|numeric|min:0',
+            '729_keterangan'  => 'nullable|string',
+            '729_gambar'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        // Proses item baru dari form
+        $items = [];
+        $barangIds = $request->input('729_barang_id', []);
+        $jumlahs   = $request->input('729_jumlah', []);
+        $hargas    = $request->input('729_harga', []);
+        $namaLain  = $request->input('729_nama_barang_lain', []);
+        $namaBarangHidden = $request->input('729_nama_barang', []);
+
+        foreach ($barangIds as $i => $barangId) {
+            if (empty($barangId) || empty($jumlahs[$i])) {
+                continue;
+            }
+
+            $item = [
+                'barang_id' => $barangId,
+                'jumlah'    => (int) $jumlahs[$i],
+                'harga'     => (int) $hargas[$i],
+                'subtotal'  => (int) $jumlahs[$i] * (int) $hargas[$i],
+            ];
+
+            if ($barangId === 'LAINNYA' && isset($namaLain[$i])) {
+                $item['nama_barang_lain'] = trim($namaLain[$i]);
+            } elseif (!empty($namaBarangHidden[$i])) {
+                $item['nama_barang'] = trim($namaBarangHidden[$i]);
+            }
+
+            $items[] = $item;
+        }
+
+        // Ganti gambar hanya jika file baru diupload
+        $gambarPath = $masuk->gambar;
+        $gambarOriginal = $masuk->gambar_original;
+        if ($request->hasFile('729_gambar') && $request->file('729_gambar')->isValid()) {
+            if ($masuk->gambar && Storage::disk('public')->exists($masuk->gambar)) {
+                Storage::disk('public')->delete($masuk->gambar);
+            }
+
+            $file = $request->file('729_gambar');
+            $gambarOriginal = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $newName = date('Ymd_His') . '_' . Str::random(10) . '.' . $extension;
+
+            $userNim = auth()->user()->username;
+            $lastTwo = substr($userNim, -2);
+            $folder = ($lastTwo % 2 == 0) ? 'genap' : 'ganjil';
+
+            $file->storeAs($folder, $newName, 'public');
+            $gambarPath = $folder . '/' . $newName;
+        }
+
+        $nomor = $request->input('729_nomor');
+        if (empty($nomor)) {
+            $nomor = $masuk->nomor;
+        }
+
+        $itemsLama = $masuk->items ?? [];
+
+        DB::transaction(function () use ($masuk, $request, $items, $itemsLama, $nomor, $gambarPath, $gambarOriginal) {
+            // Batalkan efek stok dari data lama, lalu terapkan efek stok data baru
+            $this->reverseStokMasuk($itemsLama);
+            $this->applyStokMasuk($items);
+
+            $masuk->update([
+                'tanggal'    => $request->input('729_tanggal'),
+                'pihak'      => $request->input('729_pihak'),
+                'nomor'      => $nomor,
+                'items'      => $items,
+                'total'      => (int) $request->input('729_total'),
+                'keterangan' => $request->input('729_keterangan', ''),
+                'gambar'     => $gambarPath,
+                'gambar_original' => $gambarOriginal,
+            ]);
+        });
+
+        return redirect()->route('catatan-masuk.index')->with('success', 'Catatan masuk berhasil diperbarui dan stok barang telah disesuaikan!');
+    }
+
+    public function destroy($id)
+    {
+        $masuk = Masuk729::findOrFail($id);
+
+        DB::transaction(function () use ($masuk) {
+            // Batalkan efek stok yang pernah ditambahkan oleh catatan ini
+            $this->reverseStokMasuk($masuk->items ?? []);
+
+            if ($masuk->gambar && Storage::disk('public')->exists($masuk->gambar)) {
+                Storage::disk('public')->delete($masuk->gambar);
+            }
+
+            $masuk->delete();
+        });
+
+        return redirect()->route('catatan-masuk.index')->with('success', 'Catatan masuk berhasil dihapus dan stok barang telah disesuaikan!');
     }
 }
