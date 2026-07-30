@@ -65,11 +65,7 @@
                 </a>
             </li>
             <li class="nav-item">
-<<<<<<< HEAD
-                <a class="nav-link " href="{{ route('page.catatan-masuk-729.index') }}">
-=======
-                <a class="nav-link {{ Request::is('catatan-masuk*') ? 'active' : '' }}" href="{{ route('catatan-masuk.index') }}">
->>>>>>> 6f4f3cae7e66eebf5f2adf0aa3462817bd76b6d5
+                <a class="nav-link {{ Request::is('catatan-masuk*') ? 'active' : '' }}" href="{{ route('page.catatan-masuk-729.index') }}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 45 40" version="1.1"
