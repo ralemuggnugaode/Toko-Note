@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const btnDel = e.target.closest('.btn-delete-742');
         if (btnDel) {
-            document.getElementById('formDelete742').action = `/catatan-keluar-742/${btnDel.dataset.id}`;
+            document.getElementById('formDelete742').action = `/page.catatan-keluar-742/${btnDel.dataset.id}`;
             document.getElementById('delete_nomor_text').innerText = btnDel.dataset.nomor !== '-' ? `(${btnDel.dataset.nomor})` : '';
             new bootstrap.Modal(document.getElementById('modalDelete742')).show();
         }
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const btnEdit = e.target.closest('.btn-edit-742');
         if (btnEdit) {
             const d = btnEdit.dataset;
-            document.getElementById('formEdit742').action = `/catatan-keluar-742/${d.id}`;
+            document.getElementById('formEdit742').action = `/page.catatan-keluar-742/${d.id}`;
             document.getElementById('edit_tanggal').value = d.tanggal;
             document.getElementById('edit_pihak').value = d.pihak;
             document.getElementById('edit_nomor').value = d.nomor;

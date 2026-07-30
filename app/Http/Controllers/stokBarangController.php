@@ -41,7 +41,7 @@ class stokBarangController extends Controller
             '719_stok_tercatat'  => 'required|integer',
         ]);
 
-        $validated['719_gambar'] = $request->file('719_gambar')->store('image-barang-719');
+        $validated['719_gambar'] = $request->file('719_gambar')->store('image-gambar-719');
 
         $kode = $validated['719_kode'] ?? null;
 
