@@ -21,14 +21,16 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth'])->group(function(){
     Route::name('page.')->group(function(){
         Route::get('/',[PageController::class, 'index'])->name('home');
-        Route::resource('stok-barang-719', stokBarangController::class)->parameters(['stok-barang-719' => 'stokBarang']);
+        Route::resource('stok-barang-719', stokBarangController::class)->parameters(['stok-barang-719' => 'stokBarang719']);
         Route::resource('catatan-masuk-729', CatatanMasukController::class);
         Route::resource('catatan-keluar-742', CatatanKeluarController::class);
     });
 });
 
 Route::name('sign.')->group(function(){
-    Route::get('Login', [AuthController::class,'signIn'])->name('inView');
+    Route::get('login', [AuthController::class,'signIn'])->name('inView');
+    Route::post('login', [AuthController::class,'signInProcc'])->name('In');
+    Route::post('logout', [AuthController::class,'signOutProcc'])->name('Out');
 });
 
 

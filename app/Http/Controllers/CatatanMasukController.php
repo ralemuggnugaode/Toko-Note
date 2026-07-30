@@ -12,7 +12,7 @@ class CatatanMasukController extends Controller
      */
     public function index()
     {
-        return view('pemasukan',[
+        return view('#',[
             'title' => 'Pemasukan'
         ]);
     }

@@ -21,8 +21,19 @@ class AuthController extends Controller
         ]);
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('page.home');
-    }
+            $user = Auth::user();
+            switch($user->identification_number){
+                case '719':
+                    return redirect()->intended(route('page.stok-barang-719.index'));
+                case '729':
+                    return redirect()->intended(route('page.catatan-masuk-729.index'));
+                case '742':
+                    return redirect()->intended(route('page.catatan-keluar-742.index'));
+            }
+        }
+        return back()->withErrors([
+            'username' => 'Username atau password salah.',
+        ])->withInput();
     }
 
     public function signOutProcc(Request $request){

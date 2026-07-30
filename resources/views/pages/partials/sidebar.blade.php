@@ -39,7 +39,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ Request::is('stok-barang-719*') ? 'active' : '' }}" href="{{ route('stok-barang-719.index') }}">
+                <a class="nav-link {{ Request::is('stok-barang-719*') ? 'active' : '' }}" href="{{ route('page.stok-barang-719.index') }}">
                     <div
                         class="icon icon-shape icon-sm shadow  border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 45 40" version="1.1"
@@ -65,7 +65,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link " href="{{ route('catatan-masuk-729.index') }}">
+                <a class="nav-link " href="{{ route('page.catatan-masuk-729.index') }}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 45 40" version="1.1"
@@ -91,7 +91,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link " href="{{ route('catatan-keluar-742.index') }}">
+                <a class="nav-link " href="{{ route('page.catatan-keluar-742.index') }}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 45 40" version="1.1"

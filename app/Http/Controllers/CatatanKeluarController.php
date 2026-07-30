@@ -12,7 +12,7 @@ class CatatanKeluarController extends Controller
      */
     public function index()
     {
-        return view('catatan_keluar',[
+        return view('#',[
             'title' => 'Catatan Keluar'
         ]);
     }
