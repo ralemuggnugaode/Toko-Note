@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Traits\LogActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    use LogActivity;
+
     public function index()
     {
         $users = User::where('role', 'karyawan')->get();
@@ -27,13 +30,15 @@ class UserController extends Controller
             $identificationNumber = str_pad(random_int(0, 999), 3, '0', STR_PAD_LEFT);
         } while (User::where('identification_number', $identificationNumber)->exists());
 
-        User::create([
+        $user = User::create([
             'name'                  => $request->name,
             'username'              => $request->username,
             'password'              => Hash::make($request->password),
             'role'                  => 'karyawan',
             'identification_number' => $identificationNumber,
         ]);
+
+        $this->logActivity($user, 'create', $request->all());
 
         return redirect()->route('page.karyawan.index')->with('success', 'Karyawan berhasil ditambahkan.');
     }
@@ -62,6 +67,8 @@ class UserController extends Controller
 
         $user->update($data);
 
+        $this->logActivity($user, 'update', $request->all());
+
         return redirect()->route('page.karyawan.index')->with('success', 'Karyawan berhasil diperbarui.');
     }
 
@@ -70,7 +77,10 @@ class UserController extends Controller
         if ($user->id === auth()->id()) {
             return back()->withErrors(['error' => 'Anda tidak dapat menghapus akun sendiri.']);
         }
+
+        $this->logActivity($user, 'delete');
         $user->delete();
+
         return redirect()->route('page.karyawan.index')->with('success', 'Karyawan berhasil dihapus.');
     }
 }

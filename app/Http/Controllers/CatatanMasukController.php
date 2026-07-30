@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Masuk729;
 use App\Models\StokBarang_719;
 use App\Traits\ResolvesImageFolder;
+use App\Traits\LogActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -13,9 +14,7 @@ use Illuminate\Support\Str;
 
 class CatatanMasukController extends Controller
 {
-    use ResolvesImageFolder;
-
-
+    use ResolvesImageFolder, LogActivity;
 
     public function index()
     {
@@ -27,7 +26,6 @@ class CatatanMasukController extends Controller
 
     public function store(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             '729_tanggal'    => 'required|date',
             '729_pihak'      => 'required|string|max:255',
@@ -43,7 +41,6 @@ class CatatanMasukController extends Controller
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
-
 
         $items = [];
         $barangIds = $request->input('729_barang_id', []);
@@ -67,14 +64,12 @@ class CatatanMasukController extends Controller
             if ($barangId === 'LAINNYA' && isset($namaLain[$i])) {
                 $item['nama_barang_lain'] = trim($namaLain[$i]);
             } elseif (!empty($namaBarangHidden[$i])) {
-                // Nama barang (dari dropdown Jenis) disimpan sebagai cadangan pencocokan stok
                 $item['nama_barang'] = trim($namaBarangHidden[$i]);
             }
 
             $items[] = $item;
         }
 
-        // Upload gambar
         $gambarPath = null;
         $gambarOriginal = null;
         if ($request->hasFile('729_gambar') && $request->file('729_gambar')->isValid()) {
@@ -83,13 +78,8 @@ class CatatanMasukController extends Controller
             $extension = $file->getClientOriginalExtension();
             $newName = date('Ymd_His') . '_' . Str::random(10) . '.' . $extension;
 
-            // Tentukan folder berdasarkan identification_number user yang login
-            // Contoh hasil: 'ganjil/catatan_masuk_729'
             $folder = $this->imageFolder(729, 'catatan_masuk_729');
-
-            // Simpan di storage/app/public/$folder (disk 'public')
             $file->storeAs($folder, $newName, 'public');
-            // Simpan path relatif dari public: 'ganjil/catatan_masuk_729/nama.jpg'
             $gambarPath = $folder . '/' . $newName;
         }
 
@@ -99,8 +89,7 @@ class CatatanMasukController extends Controller
         }
 
         DB::transaction(function () use ($request, $items, $nomor, $gambarPath, $gambarOriginal) {
-            // Simpan catatan masuk
-            Masuk729::create([
+            $masuk = Masuk729::create([
                 'tanggal'    => $request->input('729_tanggal'),
                 'pihak'      => $request->input('729_pihak'),
                 'nomor'      => $nomor,
@@ -111,8 +100,8 @@ class CatatanMasukController extends Controller
                 'gambar_original' => $gambarOriginal,
             ]);
 
-            // Update stok barang berdasarkan barang yang masuk
             $this->applyStokMasuk($items);
+            $this->logActivity($masuk, 'create', $request->all());
         });
 
         return redirect()->route('page.catatan-masuk-729.index')->with('success', 'Catatan masuk berhasil disimpan dan stok barang telah diperbarui!');
@@ -123,18 +112,11 @@ class CatatanMasukController extends Controller
         return StokBarang_719::whereRaw('LOWER(TRIM(719_nama)) = ?', [strtolower(trim($nama))])->first();
     }
 
-    /**
-     * Tambahkan stok ke StokBarang_719 sesuai daftar item catatan masuk.
-     * Dipakai saat store() dan saat update() menerapkan item baru.
-     */
     private function applyStokMasuk(array $items): void
     {
         foreach ($items as $item) {
             if ($item['barang_id'] === 'LAINNYA') {
                 $namaBaru = trim($item['nama_barang_lain'] ?? 'Barang Baru');
-
-                // Cek jika barang dengan nama yang sama sudah ada (tidak peka huruf besar/kecil & spasi),
-                // baik dari supplier yang sama maupun beda -> tambahkan stoknya saja, jangan buat duplikat
                 $barangSama = $this->cariBarangSamaNama($namaBaru);
 
                 if ($barangSama) {
@@ -158,9 +140,6 @@ class CatatanMasukController extends Controller
                     '719_stok_tercatat' => $item['jumlah'],
                 ]);
             } else {
-                // Barang sudah ada di stok (dipilih dari dropdown Jenis) -> tambahkan jumlah stok tercatat.
-                // Dicocokkan lewat kode barang dulu; kalau entah kenapa tidak ketemu, coba lewat nama
-                // sebagai cadangan supaya stok tetap ter-update.
                 $barang = StokBarang_719::where('719_kode', $item['barang_id'])->first();
 
                 if (!$barang && !empty($item['nama_barang'])) {
@@ -169,17 +148,12 @@ class CatatanMasukController extends Controller
 
                 if ($barang) {
                     $barang->increment('719_stok_tercatat', $item['jumlah']);
-                    // Perbarui harga beli terbaru dari transaksi masuk ini
                     $barang->update(['719_harga_beli' => $item['harga']]);
                 }
             }
         }
     }
 
-    /**
-     * Kebalikan dari applyStokMasuk(): kurangi stok sesuai daftar item lama,
-     * dipakai saat sebuah catatan masuk diedit (batalkan efek lama) atau dihapus.
-     */
     private function reverseStokMasuk(array $items): void
     {
         foreach ($items as $item) {
@@ -233,7 +207,6 @@ class CatatanMasukController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Proses item baru dari form
         $items = [];
         $barangIds = $request->input('729_barang_id', []);
         $jumlahs   = $request->input('729_jumlah', []);
@@ -262,7 +235,6 @@ class CatatanMasukController extends Controller
             $items[] = $item;
         }
 
-        // Ganti gambar hanya jika file baru diupload
         $gambarPath = $masuk->gambar;
         $gambarOriginal = $masuk->gambar_original;
         if ($request->hasFile('729_gambar') && $request->file('729_gambar')->isValid()) {
@@ -276,7 +248,6 @@ class CatatanMasukController extends Controller
             $newName = date('Ymd_His') . '_' . Str::random(10) . '.' . $extension;
 
             $folder = $this->imageFolder(729, 'catatan_masuk_729');
-
             $file->storeAs($folder, $newName, 'public');
             $gambarPath = $folder . '/' . $newName;
         }
@@ -289,7 +260,6 @@ class CatatanMasukController extends Controller
         $itemsLama = $masuk->items ?? [];
 
         DB::transaction(function () use ($masuk, $request, $items, $itemsLama, $nomor, $gambarPath, $gambarOriginal) {
-            // Batalkan efek stok dari data lama, lalu terapkan efek stok data baru
             $this->reverseStokMasuk($itemsLama);
             $this->applyStokMasuk($items);
 
@@ -303,6 +273,8 @@ class CatatanMasukController extends Controller
                 'gambar'     => $gambarPath,
                 'gambar_original' => $gambarOriginal,
             ]);
+
+            $this->logActivity($masuk, 'update', $request->all());
         });
 
         return redirect()->route('page.catatan-masuk-729.index')->with('success', 'Catatan masuk berhasil diperbarui dan stok barang telah disesuaikan!');
@@ -313,7 +285,6 @@ class CatatanMasukController extends Controller
         $masuk = Masuk729::findOrFail($id);
 
         DB::transaction(function () use ($masuk) {
-            // Batalkan efek stok yang pernah ditambahkan oleh catatan ini
             $this->reverseStokMasuk($masuk->items ?? []);
 
             if ($masuk->gambar && Storage::disk('public')->exists($masuk->gambar)) {
@@ -321,6 +292,7 @@ class CatatanMasukController extends Controller
             }
 
             $masuk->delete();
+            $this->logActivity($masuk, 'delete');
         });
 
         return redirect()->route('page.catatan-masuk-729.index')->with('success', 'Catatan masuk berhasil dihapus dan stok barang telah disesuaikan!');
