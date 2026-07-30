@@ -112,7 +112,7 @@ class CatatanMasukController extends Controller
             ]);
 
             // Update stok barang berdasarkan barang yang masuk
-            $this->applyStokMasuk($items);
+            $this->applyStokMasuk($items, $gambarPath);
         });
 
         return redirect()->route('page.catatan-masuk-729.index')->with('success', 'Catatan masuk berhasil disimpan dan stok barang telah diperbarui!');
@@ -124,10 +124,36 @@ class CatatanMasukController extends Controller
     }
 
     /**
+     * Salin (copy fisik) foto nota catatan masuk ke folder foto produk Stok Barang,
+     * supaya barang baru dari "Lainnya" langsung punya foto, dan file-nya independen
+     * dari foto nota aslinya (aman kalau nota-nya nanti diganti/dihapus).
+     */
+    private function salinFotoUntukBarangBaru(?string $gambarNota): string
+    {
+        if (empty($gambarNota) || !Storage::disk('public')->exists($gambarNota)) {
+            return '';
+        }
+
+        $extension = pathinfo($gambarNota, PATHINFO_EXTENSION);
+        $namaBaru = date('Ymd_His') . '_' . Str::random(10) . ($extension ? '.' . $extension : '');
+        $folderTujuan = $this->imageFolder(719, 'barang_719');
+        $pathTujuan = $folderTujuan . '/' . $namaBaru;
+
+        Storage::disk('public')->copy($gambarNota, $pathTujuan);
+
+        return $pathTujuan;
+    }
+
+    /**
      * Tambahkan stok ke StokBarang_719 sesuai daftar item catatan masuk.
      * Dipakai saat store() dan saat update() menerapkan item baru.
+     *
+     * @param  string|null  $gambarNota  Path foto yang di-upload di form catatan masuk (disk 'public').
+     *                                   Untuk barang BARU ('LAINNYA'), foto ini disalin (copy fisik,
+     *                                   bukan sekadar link) supaya jadi foto produk di Stok Barang,
+     *                                   tanpa ikut terhapus kalau foto nota di catatan masuknya diganti/dihapus.
      */
-    private function applyStokMasuk(array $items): void
+    private function applyStokMasuk(array $items, ?string $gambarNota = null): void
     {
         foreach ($items as $item) {
             if ($item['barang_id'] === 'LAINNYA') {
@@ -149,7 +175,7 @@ class CatatanMasukController extends Controller
 
                 StokBarang_719::create([
                     '719_kode'          => $kodeBaru,
-                    '719_gambar'        => '',
+                    '719_gambar'        => $this->salinFotoUntukBarangBaru($gambarNota),
                     '719_nama'          => $namaBaru,
                     '719_kategori'      => 'Lain-lain',
                     '719_harga_beli'    => $item['harga'],
@@ -291,7 +317,7 @@ class CatatanMasukController extends Controller
         DB::transaction(function () use ($masuk, $request, $items, $itemsLama, $nomor, $gambarPath, $gambarOriginal) {
             // Batalkan efek stok dari data lama, lalu terapkan efek stok data baru
             $this->reverseStokMasuk($itemsLama);
-            $this->applyStokMasuk($items);
+            $this->applyStokMasuk($items, $gambarPath);
 
             $masuk->update([
                 'tanggal'    => $request->input('729_tanggal'),
