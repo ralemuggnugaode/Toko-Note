@@ -2,14 +2,9 @@
 
 namespace Database\Seeders;
 
-<<<<<<< HEAD
-use Illuminate\Database\Seeder;
-use App\Models\User;
-=======
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
->>>>>>> 43773f0907c635af242290f113bc7a48de03194f
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
@@ -19,13 +14,6 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-<<<<<<< HEAD
-        User::create([
-            'name'     => 'Desta',
-            'email'    => 'desta@gmail.com',
-            'password' => Hash::make('orangbaik'), // Password untuk login nanti
-        ]);
-=======
         $users = [
             [
                 'name'                  => 'Edo Agung Gumelar',
@@ -53,6 +41,5 @@ class UserSeeder extends Seeder
         foreach ($users as $user) {
             User::create($user);
         }
->>>>>>> 43773f0907c635af242290f113bc7a48de03194f
     }
 }
