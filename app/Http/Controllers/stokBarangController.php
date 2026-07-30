@@ -14,7 +14,7 @@ class stokBarangController extends Controller
     public function index()
     {
         $barangs = StokBarang_719::all();
-        return view('pages.stokBarang_719',compact('barangs'))->with('title', 'Stok Barang');
+        return view('pages.stokBarang_719', compact('barangs'))->with('title', 'Stok Barang');
     }
 
     /**
@@ -41,7 +41,7 @@ class stokBarangController extends Controller
             '719_stok_tercatat'  => 'required|integer',
         ]);
 
-        $validated['719_gambar'] = $request->file('719_gambar')->store('image-barang');
+        $validated['719_gambar'] = $request->file('719_gambar')->store('image-barang-719');
 
         $kode = $validated['719_kode'] ?? null;
 
@@ -68,7 +68,7 @@ class stokBarangController extends Controller
         ]);
 
         return redirect()->route('stok-barang-719.index')
-                         ->with('success', 'Barang berhasil disimpan.');
+            ->with('success', 'Barang berhasil disimpan.');
     }
 
     /**
@@ -84,7 +84,7 @@ class stokBarangController extends Controller
      */
     public function edit(StokBarang_719 $stokBarang)
     {
-        //
+        return view('pages.editStokBarang', compact('stokBarang'))->with('title', 'Edit Barang');
     }
 
     /**
@@ -92,7 +92,54 @@ class stokBarangController extends Controller
      */
     public function update(Request $request, StokBarang_719 $stokBarang)
     {
-        //
+        $validated = $request->validate([
+            '719_gambar'         => 'max:5120|nullable|file|image',
+            '719_kode'           => 'nullable|string|max:10',
+            '719_nama'           => 'required|string|max:255',
+            '719_kategori'       => 'required|string|max:255',
+            '719_harga_beli'     => 'required|numeric',
+            '719_harga_jual'     => 'required|numeric',
+            '719_stok_min'       => 'required|integer',
+            '719_stok_tercatat'  => 'required|integer',
+        ]);
+
+        if ($request->hasFile('719_gambar')) {
+            if ($stokBarang->{'719_gambar'} && Storage::exists($stokBarang->{'719_gambar'})) {
+                Storage::delete($stokBarang->{'719_gambar'});
+            }
+            $path = $request->file('719_gambar')->store('image-gambar-719');
+            $validated['719_gambar'] = $path;
+        } else {
+            $validated['719_gambar'] = $stokBarang->{'719_gambar'};
+        }
+
+        $kode = $validated['719_kode'] ?? null;
+
+        if (!$kode) {
+            $kode = $stokBarang->{'719_kode'};
+        } else {
+            if ($kode !== $stokBarang->{'719_kode'}) {
+                $existing = StokBarang_719::where('719_kode', $kode)
+                    ->where('id', '!=', $stokBarang->id)
+                    ->exists();
+                if ($existing) {
+                    return back()->withErrors(['719_kode' => 'Kode barang sudah digunakan'])->withInput();
+                }
+            }
+        }
+
+        $stokBarang->update([
+            '719_kode' => $kode,
+            '719_gambar' => $validated['719_gambar'],
+            '719_nama' => $validated['719_nama'],
+            '719_kategori' => $validated['719_kategori'],
+            '719_harga_beli' => $validated['719_harga_beli'],
+            '719_harga_jual' => $validated['719_harga_jual'],
+            '719_stok_min' => $validated['719_stok_min'],
+            '719_stok_tercatat' => $validated['719_stok_tercatat'],
+        ]);
+
+        return redirect()->route('stok-barang-719.index')->with('success', 'Data barang berhasil diperbarui');
     }
 
     /**
@@ -107,7 +154,7 @@ class stokBarangController extends Controller
         }
         $getStokBarang->delete();
         return redirect()
-        ->route('stok-barang-719.index')
-        ->with('success', 'Barang berhasil dihapus');
+            ->route('stok-barang-719.index')
+            ->with('success', 'Barang berhasil dihapus');
     }
 }

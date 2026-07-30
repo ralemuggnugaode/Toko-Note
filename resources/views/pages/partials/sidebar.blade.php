@@ -5,7 +5,7 @@
             aria-hidden="true" id="iconSidenav"></i>
         <a class="navbar-brand m-0" href="https://demos.creative-tim.com/soft-ui-dashboard/pages/dashboard.html"
             target="_blank">
-            <img src="../assets/img/logo-ct.png" class="navbar-brand-img h-100" alt="main_logo">
+            <img src="/assets/img/logo-ct.png" class="navbar-brand-img h-100" alt="main_logo">
             <span class="ms-1 font-weight-bold">TokoNote</span>
         </a>
     </div>
@@ -39,7 +39,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ Request::is('stok-barang-719') ? 'active' : '' }}" href="{{ route('stok-barang-719.index') }}">
+                <a class="nav-link {{ Request::is('stok-barang-719*') ? 'active' : '' }}" href="{{ route('stok-barang-719.index') }}">
                     <div
                         class="icon icon-shape icon-sm shadow  border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 45 40" version="1.1"
