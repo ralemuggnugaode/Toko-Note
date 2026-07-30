@@ -30,8 +30,8 @@ class UserSeeder extends Seeder
                 'identification_number' => '729',
             ],
             [
-                'name'                  => 'Admin 742',
-                'username'              => 'Fradesta Leksa S',
+                'name'                  => 'Fradesta Leksa Saputra',
+                'username'              => 'admin742',
                 'password'              => Hash::make('789'),
                 'role'                  => 'admin',
                 'identification_number' => '742',

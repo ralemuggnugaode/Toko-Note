@@ -17,7 +17,7 @@
                     @endif
                 @endforeach
 
-                <form action="{{ route('catatan-keluar-742.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('page.catatan-keluar-742.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row mb-3">
                         <div class="col-md-4"><label class="form-label">Tanggal</label><input type="date" name="tanggal_742" class="form-control" value="{{ date('Y-m-d') }}" required></div>
