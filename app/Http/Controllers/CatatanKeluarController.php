@@ -2,66 +2,172 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pengeluaran;
 use Illuminate\Http\Request;
+use App\Models\Pengeluaran_742;
+use App\Models\StokBarang_719;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 
 class CatatanKeluarController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return view('catatan_keluar',[
-            'title' => 'Catatan Keluar'
+        return view('pages.catatanKeluar_742', [
+            'title'          => 'Catatan Barang Keluar',
+            'stokBarang'     => StokBarang_719::all(),
+            'keluarTerakhir' => Pengeluaran_742::latest()->take(5)->get()
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $this->validateInput($request);
+
+        // Validasi Cek Stok
+        foreach ($request->barangid_742 as $i => $id) {
+            $barang = StokBarang_719::find($id);
+            if (!$barang) return back()->withInput()->with('error', 'Barang tidak ditemukan.');
+
+            $stok = (int) $barang->{'719_stok_tercatat'};
+            $minta = (int) $request->jumlah_742[$i];
+            if ($minta > $stok) {
+                return back()->withInput()->with('error', "Stok tidak mencukupi! '{$barang->{'719_nama_barang'}}' sisa {$stok} pcs.");
+            }
+        }
+
+        // Simpan & Potong Stok dengan DB Transaction
+        DB::transaction(function () use ($request) {
+            [$items, $total] = $this->processItemsAndStock($request->barangid_742, $request->jumlah_742, $request->harga_jual_742, 'decrement');
+
+            Pengeluaran_742::create([
+                'barangid_742'   => $request->barangid_742[0],
+                'tanggal_742'    => $request->tanggal_742,
+                'pihak_742'      => $request->pihak_742,
+                'nomor_742'      => $request->nomor_742 ?? '-',
+                'keterangan_742' => $request->keterangan_742,
+                'gambar_742'     => $this->handleUpload($request),
+                'items_742'      => json_encode($items),
+                'total_742'      => $total,
+            ]);
+        });
+
+        return back()->with('success', 'Catatan pengeluaran barang sukses ditambahkan!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Pengeluaran $pengeluaran)
+    public function update(Request $request, $id)
     {
-        //
+        $catatan = Pengeluaran_742::findOrFail($id);
+        $this->validateInput($request);
+
+        // Validasi Cek Stok (Virtual)
+        $oldItems = json_decode($catatan->items_742, true) ?? [];
+        foreach ($request->barangid_742 as $i => $bId) {
+            $barang = StokBarang_719::find($bId);
+            if (!$barang) return back()->with('error', 'Barang tidak ditemukan.');
+
+            $oldQty = collect($oldItems)->firstWhere('barang_id', $bId)['jumlah'] ?? 0;
+            $stokTersedia = (int) $barang->{'719_stok_tercatat'} + $oldQty;
+
+            if ((int)$request->jumlah_742[$i] > $stokTersedia) {
+                return back()->with('error', "Gagal Update! Stok '{$barang->{'719_nama_barang'}}' maksimal {$stokTersedia} pcs.");
+            }
+        }
+
+        // Restore Stok Lama -> Potong Stok Baru -> Update Record
+        DB::transaction(function () use ($request, $catatan, $oldItems) {
+            $this->restoreStock($oldItems);
+            [$items, $total] = $this->processItemsAndStock($request->barangid_742, $request->jumlah_742, $request->harga_jual_742, 'decrement');
+
+            $catatan->update([
+                'barangid_742'   => $request->barangid_742[0],
+                'tanggal_742'    => $request->tanggal_742,
+                'pihak_742'      => $request->pihak_742,
+                'nomor_742'      => $request->nomor_742 ?? '-',
+                'keterangan_742' => $request->keterangan_742,
+                'gambar_742'     => $this->handleUpload($request, $catatan->gambar_742),
+                'items_742'      => json_encode($items),
+                'total_742'      => $total,
+            ]);
+        });
+
+        return back()->with('success', 'Catatan pengeluaran barang berhasil diperbarui!');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Pengeluaran $pengeluaran)
+    public function destroy($id)
     {
-        //
+        $catatan = Pengeluaran_742::findOrFail($id);
+
+        DB::transaction(function () use ($catatan) {
+            $this->restoreStock(json_decode($catatan->items_742, true) ?? []);
+            if ($catatan->gambar_742) $this->deleteFile($catatan->gambar_742);
+            $catatan->delete();
+        });
+
+        return back()->with('success', 'Catatan berhasil dihapus, stok otomatis dikembalikan!');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Pengeluaran $pengeluaran)
+    // ================= PRIVATE HELPER METHODS =================
+
+    private function validateInput(Request $request)
     {
-        //
+        $request->validate([
+            'tanggal_742'     => 'required|date',
+            'pihak_742'       => 'required|string|max:255',
+            'barangid_742'    => 'required|array',
+            'barangid_742.*'  => 'required',
+            'jumlah_742'      => 'required|array',
+            'jumlah_742.*'    => 'required|numeric|min:1',
+            'harga_jual_742'  => 'required|array',
+            'harga_jual_742.*'=> 'required|numeric|min:0',
+            'gambar_742'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ], [
+            'gambar_742.image' => 'File yang diunggah harus berupa gambar.',
+            'gambar_742.mimes' => 'Format gambar harus berupa JPG, JPEG, PNG, atau WEBP.',
+            'gambar_742.max'   => 'Ukuran gambar tidak boleh lebih dari 2MB.',
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Pengeluaran $pengeluaran)
+    private function processItemsAndStock($barangIds, $jumlahs, $hargas, $action = 'decrement')
     {
-        //
+        $items = [];
+        $total = 0;
+        foreach ($barangIds as $i => $id) {
+            $qty = (int) $jumlahs[$i];
+            $price = (int) $hargas[$i];
+            $subtotal = $qty * $price;
+            $total += $subtotal;
+
+            $items[] = ['barang_id' => $id, 'jumlah' => $qty, 'harga' => $price, 'subtotal' => $subtotal];
+
+            $barang = StokBarang_719::find($id);
+            if ($barang) $barang->$action('719_stok_tercatat', $qty);
+        }
+        return [$items, $total];
+    }
+
+    private function restoreStock(array $items)
+    {
+        foreach ($items as $item) {
+            $barang = StokBarang_719::find($item['barang_id']);
+            if ($barang) $barang->increment('719_stok_tercatat', $item['jumlah']);
+        }
+    }
+
+    private function handleUpload(Request $request, $oldFile = null)
+    {
+        if ($request->hasFile('gambar_742')) {
+            if ($oldFile) $this->deleteFile($oldFile);
+            $file = $request->file('gambar_742');
+            $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/catatan_keluar'), $fileName);
+            return $fileName;
+        }
+        return $oldFile;
+    }
+
+    private function deleteFile($fileName)
+    {
+        $path = public_path('uploads/catatan_keluar/' . $fileName);
+        if (File::exists($path)) File::delete($path);
     }
 }
