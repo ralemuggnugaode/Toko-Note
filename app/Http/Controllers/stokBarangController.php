@@ -41,7 +41,7 @@ class stokBarangController extends Controller
             '719_stok_tercatat'  => 'required|integer',
         ]);
 
-        $validated['719_gambar'] = $request->file('719_gambar')->store('image-barang-719');
+        $validated['719_gambar'] = $request->file('719_gambar')->store('image-gambar-719');
 
         $kode = $validated['719_kode'] ?? null;
 
@@ -67,7 +67,7 @@ class stokBarangController extends Controller
             '719_stok_tercatat' => $validated['719_stok_tercatat'],
         ]);
 
-        return redirect()->route('stok-barang-719.index')
+        return redirect()->route('page.stok-barang-719.index')
             ->with('success', 'Barang berhasil disimpan.');
     }
 
@@ -139,7 +139,7 @@ class stokBarangController extends Controller
             '719_stok_tercatat' => $validated['719_stok_tercatat'],
         ]);
 
-        return redirect()->route('stok-barang-719.index')->with('success', 'Data barang berhasil diperbarui');
+        return redirect()->route('page.stok-barang-719.index')->with('success', 'Data barang berhasil diperbarui');
     }
 
     /**
@@ -154,7 +154,7 @@ class stokBarangController extends Controller
         }
         $getStokBarang->delete();
         return redirect()
-            ->route('stok-barang-719.index')
+            ->route('page.stok-barang-719.index')
             ->with('success', 'Barang berhasil dihapus');
     }
 }

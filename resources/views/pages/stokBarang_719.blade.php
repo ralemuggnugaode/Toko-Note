@@ -99,12 +99,12 @@
                                                     <ul class="dropdown-menu dropdown-menu-end">
                                                         <li>
                                                             <a class="dropdown-item"
-                                                                href="{{ route('stok-barang-719.edit', $barang->id) }}">
+                                                                href="{{ route('page.stok-barang-719.edit', $barang->id) }}">
                                                                 <i class="fa-regular fa-pen-to-square me-2"></i> Edit
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <form action="{{ route('stok-barang-719.destroy', $barang->id) }}"
+                                                            <form action="{{ route('page.stok-barang-719.destroy', $barang->id) }}"
                                                                 method="POST"
                                                                 onsubmit="return confirm('Yakin ingin menghapus barang {{ $barang->{'719_nama'} }}?')">
                                                                 @method('delete')
@@ -138,7 +138,7 @@
                         <h5 class="modal-title">Tambah Barang Baru</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form action="{{ route('stok-barang-719.store') }}" method="POST" enctype="multipart/form-data"
+                    <form action="{{ route('page.stok-barang-719.store') }}" method="POST" enctype="multipart/form-data"
                         novalidate>
                         @csrf
                         <div class="modal-body">

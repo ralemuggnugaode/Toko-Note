@@ -33,7 +33,7 @@
                     <h6>Catatan Masuk</h6>
                 </div>
                 <div class="card-body px-4 pt-4 pb-2">
-                    <form action="{{ route('catatan-masuk.store') }}" method="POST" id="formMasuk" enctype="multipart/form-data">
+                    <form action="{{ route('page.catatan-masuk-729.store') }}" method="POST" id="formMasuk" enctype="multipart/form-data">
                         @csrf
                         <div class="row">
                             <div class="col-md-4">
@@ -157,10 +157,10 @@
                                                 @endif
                                             </div>
                                             <div class="d-flex justify-content-end mt-1">
-                                                <a href="{{ route('catatan-masuk.edit', $masuk->id) }}" class="btn btn-link text-dark px-2 py-0 mb-0 text-xs">
+                                                <a href="{{ route('page.catatan-masuk-729.edit', $masuk->id) }}" class="btn btn-link text-dark px-2 py-0 mb-0 text-xs">
                                                     <i class="fa fa-pencil-alt"></i> Edit
                                                 </a>
-                                                <form action="{{ route('catatan-masuk.destroy', $masuk->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus catatan ini? Stok barang terkait akan dikurangi kembali.');">
+                                                <form action="{{ route('page.catatan-masuk-729.destroy', $masuk->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus catatan ini? Stok barang terkait akan dikurangi kembali.');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-link text-danger px-2 py-0 mb-0 text-xs">
