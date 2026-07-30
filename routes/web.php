@@ -4,9 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatatanKeluarController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\CatatanMasukController;
-use App\Http\Controllers\PengeluaranController;
 use App\Http\Controllers\stokBarangController;
-use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,20 +12,21 @@ use Illuminate\Support\Facades\Route;
 | Web Routes
 |--------------------------------------------------------------------------
 */
-
-Route::middleware(Authenticate::class)->group(function(){
-    // Route halaman utama (Dashboard)
-    Route::get('/', [PageController::class, 'index'])->name('page.home');
-
-    // Route resource
-    Route::resource('stok-barang-719', stokBarangController::class)->parameters(['stok-barang-719' => 'stokBarang']);
-    Route::resource('catatan-masuk-729', CatatanMasukController::class);
-    Route::resource('catatan-keluar-742', CatatanKeluarController::class);
+Route::middleware(['auth'])->group(function(){
+    Route::name('page.')->group(function(){
+        Route::get('/',[PageController::class, 'index'])->name('home');
+        Route::resource('stok-barang-719', stokBarangController::class)->parameters(['stok-barang-719' => 'stokBarang719']);
+        Route::resource('catatan-masuk-729', CatatanMasukController::class);
+        Route::resource('catatan-keluar-742', CatatanKeluarController::class);
+    });
 });
 
-// Route Login
-Route::get('Login', [AuthController::class, 'signIn'])->name('login');
-Route::post('Login', [AuthController::class, 'signInProcc'])->name('sign.store');
+Route::name('sign.')->group(function(){
+    Route::get('login', [AuthController::class,'signIn'])->name('inView');
+    Route::post('login', [AuthController::class,'signInProcc'])->name('In');
+    Route::post('logout', [AuthController::class,'signOutProcc'])->name('Out');
+});
 
-// Route Logout (diubah namanya menjadi 'logout' agar sesuai dengan navbar.blade.php)
-Route::post('Logout', [AuthController::class, 'signOutProcc'])->name('logout');
+
+
+

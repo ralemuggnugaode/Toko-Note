@@ -15,6 +15,15 @@
           </div>
           <ul class="navbar-nav justify-content-end">
             <li class="nav-item d-flex align-items-center">
+<<<<<<< HEAD
+                <form action="{{ route('sign.Out') }}" method="POST">
+                    @csrf
+                    <a class="nav-link text-body font-weight-bold py-0">
+                      <i class="fa fa-user me-sm-1"></i>
+                      <button type="submit" class="d-sm-inline d-none btn bg-gradient-danger btn-sm ">Sign Out</button>
+                    </a>
+                </form>
+=======
               <form action="{{ route('logout') }}" method="POST" class="mb-0">
                 @csrf
                 <button type="submit" class="nav-link text-body font-weight-bold py-0 border-0 bg-transparent cursor-pointer">
@@ -22,6 +31,7 @@
                   <span class="d-sm-inline d-none btn bg-gradient-danger btn-sm mb-0">Sign Out</span>
                 </button>
               </form>
+>>>>>>> 6f4f3cae7e66eebf5f2adf0aa3462817bd76b6d5
             </li>
             <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
               <a href="javascript:;" class="nav-link text-body p-0" id="iconNavbarSidenav">
