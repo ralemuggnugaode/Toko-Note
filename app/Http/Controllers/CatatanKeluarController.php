@@ -6,13 +6,14 @@ use Illuminate\Http\Request;
 use App\Models\Pengeluaran_742;
 use App\Models\StokBarang_719;
 use App\Traits\ResolvesImageFolder;
+use App\Traits\LogActivity; 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
 class CatatanKeluarController extends Controller
 {
-    use ResolvesImageFolder;
+    use ResolvesImageFolder, LogActivity;
 
     public function index()
     {
@@ -27,7 +28,6 @@ class CatatanKeluarController extends Controller
     {
         $this->validateInput($request);
 
-        // Validasi Cek Stok
         foreach ($request->barangid_742 as $i => $id) {
             $barang = StokBarang_719::find($id);
             if (!$barang) return back()->withInput()->with('error', 'Barang tidak ditemukan.');
@@ -39,11 +39,10 @@ class CatatanKeluarController extends Controller
             }
         }
 
-        // Simpan & Potong Stok dengan DB Transaction
         DB::transaction(function () use ($request) {
             [$items, $total] = $this->processItemsAndStock($request->barangid_742, $request->jumlah_742, $request->harga_jual_742, 'decrement');
 
-            Pengeluaran_742::create([
+            $catatan = Pengeluaran_742::create([
                 'barangid_742'   => $request->barangid_742[0],
                 'tanggal_742'    => $request->tanggal_742,
                 'pihak_742'      => $request->pihak_742,
@@ -53,6 +52,8 @@ class CatatanKeluarController extends Controller
                 'items_742'      => json_encode($items),
                 'total_742'      => $total,
             ]);
+
+            $this->logActivity($catatan, 'create', $request->all());
         });
 
         return back()->with('success', 'Catatan pengeluaran barang sukses ditambahkan!');
@@ -63,7 +64,6 @@ class CatatanKeluarController extends Controller
         $catatan = Pengeluaran_742::findOrFail($id);
         $this->validateInput($request);
 
-        // Validasi Cek Stok (Virtual)
         $oldItems = json_decode($catatan->items_742, true) ?? [];
         foreach ($request->barangid_742 as $i => $bId) {
             $barang = StokBarang_719::find($bId);
@@ -77,7 +77,6 @@ class CatatanKeluarController extends Controller
             }
         }
 
-        // Restore Stok Lama -> Potong Stok Baru -> Update Record
         DB::transaction(function () use ($request, $catatan, $oldItems) {
             $this->restoreStock($oldItems);
             [$items, $total] = $this->processItemsAndStock($request->barangid_742, $request->jumlah_742, $request->harga_jual_742, 'decrement');
@@ -92,6 +91,8 @@ class CatatanKeluarController extends Controller
                 'items_742'      => json_encode($items),
                 'total_742'      => $total,
             ]);
+
+            $this->logActivity($catatan, 'update', $request->all());
         });
 
         return back()->with('success', 'Catatan pengeluaran barang berhasil diperbarui!');
@@ -105,6 +106,8 @@ class CatatanKeluarController extends Controller
             $this->restoreStock(json_decode($catatan->items_742, true) ?? []);
             if ($catatan->gambar_742) $this->deleteFile($catatan->gambar_742);
             $catatan->delete();
+
+            $this->logActivity($catatan, 'delete');
         });
 
         return back()->with('success', 'Catatan berhasil dihapus, stok otomatis dikembalikan!');
@@ -165,11 +168,9 @@ class CatatanKeluarController extends Controller
             $file = $request->file('gambar_742');
             $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
-            // Simpan ke storage/app/public/{genap|ganjil}/catatan_keluar_742
             $folder = $this->imageFolder(742, 'catatan_keluar_742');
             $file->storeAs($folder, $fileName, 'public');
 
-            // Simpan path relatif (folder + nama file) supaya bisa dibedakan dari format lama
             return $folder . '/' . $fileName;
         }
         return $oldFile;
@@ -177,7 +178,6 @@ class CatatanKeluarController extends Controller
 
     private function deleteFile($value)
     {
-        // Format baru (mengandung folder), disimpan lewat disk 'public'
         if (str_contains($value, '/')) {
             if (Storage::disk('public')->exists($value)) {
                 Storage::disk('public')->delete($value);
@@ -185,7 +185,6 @@ class CatatanKeluarController extends Controller
             return;
         }
 
-        // Format lama (hanya nama file), masih disimpan di public/uploads/catatan_keluar
         $path = public_path('uploads/catatan_keluar/' . $value);
         if (File::exists($path)) File::delete($path);
     }

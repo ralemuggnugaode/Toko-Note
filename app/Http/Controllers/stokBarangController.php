@@ -4,33 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Models\StokBarang_719;
 use App\Traits\ResolvesImageFolder;
+use App\Traits\LogActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class stokBarangController extends Controller
 {
-    use ResolvesImageFolder;
+    use ResolvesImageFolder, LogActivity;
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $barangs = StokBarang_719::all();
         return view('pages.stokBarang_719', compact('barangs'))->with('title', 'Stok Barang');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -47,7 +39,6 @@ class stokBarangController extends Controller
         $validated['719_gambar'] = $request->file('719_gambar')->store($this->imageFolder(719, 'barang_719'));
 
         $kode = $validated['719_kode'] ?? null;
-
 
         if ($kode) {
             while (StokBarang_719::where('719_kode', $kode)->exists()) {
@@ -70,29 +61,22 @@ class stokBarangController extends Controller
             '719_stok_tercatat' => $validated['719_stok_tercatat'],
         ]);
 
+        $this->logActivity($barang, 'create', $request->all());
+
         return redirect()->route('page.stok-barang-719.index')
             ->with('success', 'Barang berhasil disimpan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(StokBarang_719 $stokBarang)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(StokBarang_719 $stokBarang)
     {
         return view('pages.editStokBarang', compact('stokBarang'))->with('title', 'Edit Barang');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, StokBarang_719 $stokBarang)
     {
         $validated = $request->validate([
@@ -142,20 +126,21 @@ class stokBarangController extends Controller
             '719_stok_tercatat' => $validated['719_stok_tercatat'],
         ]);
 
+        $this->logActivity($stokBarang, 'update', $request->all());
+
         return redirect()->route('page.stok-barang-719.index')->with('success', 'Data barang berhasil diperbarui');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(StokBarang_719 $stokBarang, $id)
+    public function destroy(StokBarang_719 $stokBarang)
     {
-        $getStokBarang = $stokBarang->findOrFail($id);
-        $pathGambar = $getStokBarang->{'719_gambar'};
+        $pathGambar = $stokBarang->{'719_gambar'};
         if ($pathGambar && Storage::exists($pathGambar)) {
             Storage::delete($pathGambar);
         }
-        $getStokBarang->delete();
+        $stokBarang->delete();
+
+        $this->logActivity($stokBarang, 'delete');
+
         return redirect()
             ->route('page.stok-barang-719.index')
             ->with('success', 'Barang berhasil dihapus');

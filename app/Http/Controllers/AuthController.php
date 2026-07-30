@@ -30,6 +30,8 @@ class AuthController extends Controller
                     return redirect()->intended(route('page.catatan-masuk-729.index'));
                 case '742':
                     return redirect()->intended(route('page.catatan-keluar-742.index'));
+                default:
+                    return redirect()->intended(route('page.home'));
             }
         }
         return back()->withErrors([

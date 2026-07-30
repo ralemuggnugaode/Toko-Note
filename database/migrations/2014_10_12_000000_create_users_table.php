@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('username')->unique();
             $table->string('password');
             $table->enum('role', ['admin', 'karyawan'])->default('karyawan');
-            $table->string('identification_number')->nullable();
+            $table->string('identification_number')->nullable()->unique();
             $table->rememberToken();
             $table->timestamps();
         });
