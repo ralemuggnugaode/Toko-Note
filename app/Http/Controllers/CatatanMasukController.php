@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Masuk729;
 use App\Models\StokBarang_719;
+use App\Traits\ResolvesImageFolder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,8 @@ use Illuminate\Support\Str;
 
 class CatatanMasukController extends Controller
 {
+    use ResolvesImageFolder;
+
 
 
     public function index()
@@ -80,15 +83,13 @@ class CatatanMasukController extends Controller
             $extension = $file->getClientOriginalExtension();
             $newName = date('Ymd_His') . '_' . Str::random(10) . '.' . $extension;
 
-            // Tentukan folder berdasarkan NIM user yang login
-            $userNim = auth()->user()->username; // misal '729'
-            $lastTwo = substr($userNim, -2);     // '29'
-            $folder = ($lastTwo % 2 == 0) ? 'genap' : 'ganjil';
-            // Untuk 729 -> ganjil
+            // Tentukan folder berdasarkan identification_number user yang login
+            // Contoh hasil: 'ganjil/catatan_masuk_729'
+            $folder = $this->imageFolder(729, 'catatan_masuk_729');
 
             // Simpan di storage/app/public/$folder (disk 'public')
-            $path = $file->storeAs($folder, $newName, 'public');
-            // Simpan path relatif dari public: 'ganjil/nama.jpg'
+            $file->storeAs($folder, $newName, 'public');
+            // Simpan path relatif dari public: 'ganjil/catatan_masuk_729/nama.jpg'
             $gambarPath = $folder . '/' . $newName;
         }
 
@@ -114,7 +115,7 @@ class CatatanMasukController extends Controller
             $this->applyStokMasuk($items);
         });
 
-        return redirect()->route('catatan-masuk.index')->with('success', 'Catatan masuk berhasil disimpan dan stok barang telah diperbarui!');
+        return redirect()->route('page.catatan-masuk-729.index')->with('success', 'Catatan masuk berhasil disimpan dan stok barang telah diperbarui!');
     }
 
     private function cariBarangSamaNama(string $nama)
@@ -274,9 +275,7 @@ class CatatanMasukController extends Controller
             $extension = $file->getClientOriginalExtension();
             $newName = date('Ymd_His') . '_' . Str::random(10) . '.' . $extension;
 
-            $userNim = auth()->user()->username;
-            $lastTwo = substr($userNim, -2);
-            $folder = ($lastTwo % 2 == 0) ? 'genap' : 'ganjil';
+            $folder = $this->imageFolder(729, 'catatan_masuk_729');
 
             $file->storeAs($folder, $newName, 'public');
             $gambarPath = $folder . '/' . $newName;
@@ -306,7 +305,7 @@ class CatatanMasukController extends Controller
             ]);
         });
 
-        return redirect()->route('catatan-masuk.index')->with('success', 'Catatan masuk berhasil diperbarui dan stok barang telah disesuaikan!');
+        return redirect()->route('page.catatan-masuk-729.index')->with('success', 'Catatan masuk berhasil diperbarui dan stok barang telah disesuaikan!');
     }
 
     public function destroy($id)
@@ -324,6 +323,6 @@ class CatatanMasukController extends Controller
             $masuk->delete();
         });
 
-        return redirect()->route('catatan-masuk.index')->with('success', 'Catatan masuk berhasil dihapus dan stok barang telah disesuaikan!');
+        return redirect()->route('page.catatan-masuk-729.index')->with('success', 'Catatan masuk berhasil dihapus dan stok barang telah disesuaikan!');
     }
 }

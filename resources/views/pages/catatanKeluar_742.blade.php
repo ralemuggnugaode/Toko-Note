@@ -93,16 +93,16 @@
                             <div class="d-flex align-items-center align-self-start mt-1">
                                 @if(!empty($keluar->gambar_742))
                                     <div class="me-2">
-                                        <a href="javascript:void(0);" class="btn-preview-image-742" data-src="{{ asset('uploads/catatan_keluar/' . $keluar->gambar_742) }}" data-nomor="{{ $keluar->nomor_742 ?? 'Nota' }}">
+                                        <a href="javascript:void(0);" class="btn-preview-image-742" data-src="{{ $keluar->gambar_url }}" data-nomor="{{ $keluar->nomor_742 ?? 'Nota' }}">
                                             <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid #e9ecef;">
-                                                <img src="{{ asset('uploads/catatan_keluar/' . $keluar->gambar_742) }}" style="width:100%; height:100%; object-fit:cover;">
+                                                <img src="{{ $keluar->gambar_url }}" style="width:100%; height:100%; object-fit:cover;">
                                             </div>
                                         </a>
                                     </div>
                                 @endif
                                 <div class="d-flex flex-column align-items-end">
                                     <button class="btn btn-link text-primary p-0 mb-1 btn-edit-742 text-xs font-weight-bold"
-                                        data-id="{{ $keluar->id }}" data-tanggal="{{ $keluar->tanggal_742 }}" data-pihak="{{ $keluar->pihak_742 }}" data-nomor="{{ $keluar->nomor_742 }}" data-keterangan="{{ $keluar->keterangan_742 }}" data-items="{{ $keluar->items_742 }}" data-gambar="{{ $keluar->gambar_742 ? asset('uploads/catatan_keluar/' . $keluar->gambar_742) : '' }}">
+                                        data-id="{{ $keluar->id }}" data-tanggal="{{ $keluar->tanggal_742 }}" data-pihak="{{ $keluar->pihak_742 }}" data-nomor="{{ $keluar->nomor_742 }}" data-keterangan="{{ $keluar->keterangan_742 }}" data-items="{{ $keluar->items_742 }}" data-gambar="{{ $keluar->gambar_url ?? '' }}">
                                         <i class="fa fa-pencil text-xxs"></i> EDIT
                                     </button>
                                     <button class="btn btn-link text-danger p-0 mb-0 btn-delete-742 text-xs font-weight-bold" data-id="{{ $keluar->id }}" data-nomor="{{ $keluar->nomor_742 ?? '-' }}">
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const btnDel = e.target.closest('.btn-delete-742');
         if (btnDel) {
-            document.getElementById('formDelete742').action = `/page.catatan-keluar-742/${btnDel.dataset.id}`;
+            document.getElementById('formDelete742').action = `/catatan-keluar-742/${btnDel.dataset.id}`;
             document.getElementById('delete_nomor_text').innerText = btnDel.dataset.nomor !== '-' ? `(${btnDel.dataset.nomor})` : '';
             new bootstrap.Modal(document.getElementById('modalDelete742')).show();
         }
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const btnEdit = e.target.closest('.btn-edit-742');
         if (btnEdit) {
             const d = btnEdit.dataset;
-            document.getElementById('formEdit742').action = `/page.catatan-keluar-742/${d.id}`;
+            document.getElementById('formEdit742').action = `/catatan-keluar-742/${d.id}`;
             document.getElementById('edit_tanggal').value = d.tanggal;
             document.getElementById('edit_pihak').value = d.pihak;
             document.getElementById('edit_nomor').value = d.nomor;

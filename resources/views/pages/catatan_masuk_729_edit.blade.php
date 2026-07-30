@@ -8,7 +8,7 @@
             <div class="card mb-4">
                 <div class="card-header pb-0 d-flex justify-content-between align-items-center">
                     <h6>Edit Catatan Masuk</h6>
-                    <a href="{{ route('page.catatan-masuk.index') }}" class="btn btn-sm btn-outline-secondary mb-0">
+                    <a href="{{ route('page.catatan-masuk-729.index') }}" class="btn btn-sm btn-outline-secondary mb-0">
                         <i class="fa fa-arrow-left"></i> Kembali
                     </a>
                 </div>
@@ -25,7 +25,7 @@
                     <div class="alert alert-info text-xs">
                         <i class="fa fa-info-circle"></i> Mengubah jumlah/jenis barang akan otomatis menyesuaikan stok: stok lama dibatalkan, lalu stok baru diterapkan.
                     </div>
-                    <form action="{{ route('page.catatan-masuk.update', $masuk->id) }}" method="POST" id="formEditMasuk" enctype="multipart/form-data">
+                    <form action="{{ route('page.catatan-masuk-729.update', $masuk->id) }}" method="POST" id="formEditMasuk" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <div class="row">
