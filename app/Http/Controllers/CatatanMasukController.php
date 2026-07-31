@@ -113,7 +113,7 @@ class CatatanMasukController extends Controller
     }
 
     /**
-     * Salin (copy fisik) foto nota catatan masuk ke folder foto produk Stok Barang,
+     * penjelasan untuk presentasi salin (copy fisik) foto nota catatan masuk ke folder foto produk Stok Barang,
      * supaya barang baru dari "Lainnya" langsung punya foto, dan file-nya independen
      * dari foto nota aslinya (aman kalau nota-nya nanti diganti/dihapus).
      */
@@ -134,10 +134,10 @@ class CatatanMasukController extends Controller
     }
 
     /**
-     * Tambahkan stok ke StokBarang_719 sesuai daftar item catatan masuk.
+     * penjelasan presentasi tambahkan stok ke StokBarang_719 sesuai daftar item catatan masuk.
      * Dipakai saat store() dan saat update() menerapkan item baru.
      *
-     * @param  string|null  $gambarNota  Path foto yang di-upload di form catatan masuk (disk 'public').
+     * @param  string|null  $gambarNota  alur gambar path , Path foto yang di-upload di form catatan masuk (disk 'public').
      *                                   Untuk barang BARU ('LAINNYA'), foto ini disalin (copy fisik,
      *                                   bukan sekadar link) supaya jadi foto produk di Stok Barang,
      *                                   tanpa ikut terhapus kalau foto nota di catatan masuknya diganti/dihapus.

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Pengeluaran_742;
 use App\Models\StokBarang_719;
 use App\Traits\ResolvesImageFolder;
-use App\Traits\LogActivity; 
+use App\Traits\LogActivity;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +15,7 @@ class CatatanKeluarController extends Controller
 {
     use ResolvesImageFolder, LogActivity;
 
-    public function index()
+    public function index() //ambil data dan stok transaksi
     {
         return view('pages.catatanKeluar_742', [
             'title'          => 'Catatan Barang Keluar',
@@ -27,7 +27,7 @@ class CatatanKeluarController extends Controller
     public function store(Request $request)
     {
         $this->validateInput($request);
-
+        // cek stok
         foreach ($request->barangid_742 as $i => $id) {
             $barang = StokBarang_719::find($id);
             if (!$barang) return back()->withInput()->with('error', 'Barang tidak ditemukan.');
@@ -38,7 +38,7 @@ class CatatanKeluarController extends Controller
                 return back()->withInput()->with('error', "Stok tidak mencukupi! '{$barang->{'719_nama_barang'}}' sisa {$stok} pcs.");
             }
         }
-
+        // save & potong
         DB::transaction(function () use ($request) {
             [$items, $total] = $this->processItemsAndStock($request->barangid_742, $request->jumlah_742, $request->harga_jual_742, 'decrement');
 
@@ -76,7 +76,7 @@ class CatatanKeluarController extends Controller
                 return back()->with('error', "Gagal Update! Stok '{$barang->{'719_nama_barang'}}' maksimal {$stokTersedia} pcs.");
             }
         }
-
+        //restore stok lama, lalu potong stok baru, akan update
         DB::transaction(function () use ($request, $catatan, $oldItems) {
             $this->restoreStock($oldItems);
             [$items, $total] = $this->processItemsAndStock($request->barangid_742, $request->jumlah_742, $request->harga_jual_742, 'decrement');
@@ -98,7 +98,7 @@ class CatatanKeluarController extends Controller
         return back()->with('success', 'Catatan pengeluaran barang berhasil diperbarui!');
     }
 
-    public function destroy($id)
+    public function destroy($id) //menghapus data lalu mengembalikan stok ke gudang
     {
         $catatan = Pengeluaran_742::findOrFail($id);
 
@@ -113,7 +113,6 @@ class CatatanKeluarController extends Controller
         return back()->with('success', 'Catatan berhasil dihapus, stok otomatis dikembalikan!');
     }
 
-    // ================= PRIVATE HELPER METHODS =================
 
     private function validateInput(Request $request)
     {

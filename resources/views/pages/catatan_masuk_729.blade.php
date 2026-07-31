@@ -96,7 +96,7 @@
                         </button>
                         <hr class="horizontal dark">
 
-                        <!-- Bagian Total, Gambar, Keterangan -->
+                        <!-- ini penanda bagian Total, Gambar, Keterangan -->
                         <div class="row">
                             <div class="col-md-6">
                                 <label class="form-label">Gambar (opsional)</label>
@@ -122,7 +122,7 @@
             </div>
         </div>
 
-        <!-- Kolom Kanan: Daftar 5 Catatan Masuk Terakhir -->
+        <!-- ini penanda Daftar 5 Catatan Masuk Terakhir -->
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-header pb-0">
@@ -180,7 +180,7 @@
     </div>
 </div>
 
-<!-- Modal untuk menampilkan gambar -->
+<!-- ini penanda Modal untuk menampilkan gambar -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">

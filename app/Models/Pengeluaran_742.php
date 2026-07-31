@@ -11,7 +11,6 @@ class Pengeluaran_742 extends Model
 
     protected $table = 'catatan_keluar_742';
 
-    // Sudah ditambahkan 'gambar_742' agar diizinkan masuk database
     protected $fillable = [
         'barangid_742',
         'tanggal_742',
@@ -25,11 +24,6 @@ class Pengeluaran_742 extends Model
         'updated_at',
     ];
 
-    /**
-     * URL gambar yang otomatis menyesuaikan:
-     * - Format lama: hanya nama file -> ada di public/uploads/catatan_keluar
-     * - Format baru: "genap/catatan_keluar_742/nama.jpg" -> disk 'public' (storage/app/public)
-     */
     public function getGambarUrlAttribute(): ?string
     {
         if (empty($this->gambar_742)) {

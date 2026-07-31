@@ -9,11 +9,6 @@ use App\Http\Controllers\stokBarangController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
 Route::middleware(['auth'])->group(function(){
     Route::name('page.')->group(function(){
         Route::get('/',[PageController::class, 'index'])->name('home');
