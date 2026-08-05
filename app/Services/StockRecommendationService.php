@@ -46,6 +46,42 @@ class StockRecommendationService
         ['penjualan' => 'TINGGI', 'stok' => 'BERLEBIH', 'trend' => 'STABIL', 'pasokan' => 'NORMAL', 'formula' => 'r16'],
     ];
 
+    public function getRulesForDisplay(): array
+    {
+        $formulaStrings = [
+            'r1'  => '(Penjualan * 0.5) + (Stok Min * 0.5)',
+            'r2'  => '(Penjualan * 0.6) + (Stok Min * 0.4)',
+            'r3'  => '(Penjualan * 1.2) - Stok',
+            'r4'  => '(Penjualan * 1.1) - (Stok * 0.5)',
+            'r5'  => '0 (Jangan Beli)',
+            'r6'  => 'Stok * 0.1 (Beli sedikit)',
+            'r7'  => '(Penjualan * 1.5) - Stok',
+            'r8'  => '(Penjualan * 1.3) - Stok',
+            'r9'  => '(Penjualan * 0.8) - Stok',
+            'r10' => '0 (Jangan Beli)',
+            'r11' => '(Penjualan * 2) - Stok',
+            'r12' => '(Penjualan * 1.8) - Stok',
+            'r13' => '(Penjualan * 1.2) - Stok',
+            'r14' => '(Penjualan * 0.9) - Stok',
+            'r15' => 'Stok * 0.1',
+            'r16' => '0 (Jangan Beli, fokus jual stok lama)',
+        ];
+
+        $result = [];
+        foreach (self::RULES as $i => $rule) {
+            $no = $i + 1;
+            $result[] = [
+                'no'        => $no,
+                'penjualan' => $rule['penjualan'],
+                'stok'      => $rule['stok'],
+                'trend'     => $rule['trend'],
+                'pasokan'   => $rule['pasokan'],
+                'z'         => $formulaStrings[$rule['formula']] ?? '?',
+            ];
+        }
+        return $result;
+    }
+
     /**
      * Entry point utama: hitung rekomendasi reorder untuk 1 barang.
      */
