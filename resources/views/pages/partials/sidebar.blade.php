@@ -116,6 +116,14 @@
                     <span class="nav-link-text ms-1">Catatan Keluar</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {{ Request::is('rekomendasi-stok*') ? 'active' : '' }}" href="{{ route('page.rekomendasi.index') }}">
+                    <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fa-solid fa-brain text-dark text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Rekomendasi AI</span>
+                </a>
+            </li>
             @if (auth()->user()->role === 'admin')
             <li class="nav-item">
                 <a class="nav-link {{ Request::is('karyawan*') ? 'active' : '' }}" href="{{ route('page.karyawan.index') }}">

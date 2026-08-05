@@ -38,7 +38,7 @@ class CatatanKeluarController extends Controller
                 return back()->withInput()->with('error', "Stok tidak mencukupi! '{$barang->{'719_nama_barang'}}' sisa {$stok} pcs.");
             }
         }
-        // save & potong
+        // save nota & potong stok
         DB::transaction(function () use ($request) {
             [$items, $total] = $this->processItemsAndStock($request->barangid_742, $request->jumlah_742, $request->harga_jual_742, 'decrement');
 

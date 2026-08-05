@@ -11,7 +11,7 @@ class Pengeluaran_742 extends Model
 
     protected $table = 'catatan_keluar_742';
 
-    protected $fillable = [
+    protected $fillable = [ //hanya kolom yang diizinkan saja yang dapat isi
         'barangid_742',
         'tanggal_742',
         'pihak_742',
